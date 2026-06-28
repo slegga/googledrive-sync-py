@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "googledrive-sync-py"
+version = "1.0.0"
+description = "Dropbox-like two-way mirror between a local directory and Google Drive (Python rewrite of mojo-googledrive)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "slegga" }]
+dependencies = [
+    "google-api-python-client>=2.0.0",
+    "google-auth>=2.0.0",
+    "google-auth-oauthlib>=1.0.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+gd-sync = "googledrive_sync.cli:gd_sync"
+gd-clean = "googledrive_sync.cli:gd_clean"
+gd-remove = "googledrive_sync.cli:gd_remove"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
