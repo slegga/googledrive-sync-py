@@ -28,14 +28,28 @@ store. `Mirror`/`DriveFile` must only talk to the backend interface, never to
 `googleapiclient` directly, so the logic stays testable offline.
 
 ## Custom scripts in `scripts/`
-Egenlagde scripts (`gd-sync`, `gd-clean`, `gd-remove`) ligger i `scripts/`, **ikke**
-i `.venv/bin/`. `.venv/bin/` genereres av pip og skal ikke ha manuelt plasserte filer
-— de blir overskrevet/regenerert. `project.scripts` i `pyproject.toml` definerer
-entry points; `scripts/`-filene er frittstående alternativer med `#!/usr/bin/env python3`.
+Egenlagde scripts (`gd-sync`, `gd-clean`, `gd-remove`) ligger i `scripts/`.
+Prosjektet bruker ikke virtuelt miljø i det hele tatt — ingen `.venv/`, ingen
+`pip install`, ingenting som må aktiveres. Legg aldri scripts i en katalog som
+genereres av en pakkemanager; de blir overskrevet.
 
-Det skal også lages shell-skall rundt disse (f.eks. `gd-sync.sh`) som kaller
-python-skriptene i `scripts/` med rett `PYTHONPATH` og virtuelt miljø, slik at
-de kan kjøres uten å ha `.venv/bin/` i PATH på forhånd.
+Scriptene kjøres med **uv** og er selvforsynte. De starter med
+
+```
+#!/usr/bin/env -S uv run --quiet --script
+```
+
+og deklarerer avhengighetene sine i en PEP 723-blokk. De finner `src/` selv
+(relativt til fila), så de trenger verken `PYTHONPATH`, aktivert virtuelt miljø
+eller `pip install` — hverken manuelt eller fra cron.
+
+Bruk aldri absolutt sti til `uv` i shebangen (f.eks. `/opt/homebrew/bin/uv`);
+`env -S uv` gjør at samme fil virker på macOS, Ubuntu og Raspberry Pi OS. `--quiet`
+gjør at uv er stille når alt går bra, slik at cron bare sender mail ved ekte feil.
+
+Tidligere lå det shell-skall i `bin/` som aktiverte `.venv` og satte `PYTHONPATH`.
+De er fjernet — uv-shebangen gjør jobben deres. Ikke lag nye: kall `scripts/*.py`
+direkte, både manuelt og fra cron.
 
 ## Compatibility with existing setup
 Credentials live in `~/.google-drive.yml` and sync state in
