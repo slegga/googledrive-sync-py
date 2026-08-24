@@ -72,8 +72,10 @@ def gd_sync(argv=None) -> int:
 
     if args.command == "auth":
         auth.run_init_flow()
-        print("Authorization complete. Credentials saved to "
-              f"{config.DEFAULT_CREDENTIALS_FILE}")
+        print(
+            "Authorization complete. Credentials saved to "
+            f"{config.DEFAULT_CREDENTIALS_FILE}"
+        )
         return 0
 
     mirror = _build_mirror(debug=args.debug)
@@ -119,7 +121,7 @@ def gd_remove(argv=None) -> int:
     # Accept absolute local paths under the mirror root for convenience.
     local_root = str(config.DEFAULT_LOCAL_ROOT)
     if pathfile.startswith(local_root):
-        pathfile = pathfile[len(local_root):]
+        pathfile = pathfile[len(local_root) :]
     if not pathfile.startswith("/"):
         pathfile = "/" + pathfile
 
