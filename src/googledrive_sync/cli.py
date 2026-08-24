@@ -6,8 +6,11 @@ Replaces the Perl scripts ``gd-sync.pl``, ``gd-clean.pl`` and ``gd-remove.pl``.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
+import socket
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 from . import auth, config
@@ -21,6 +24,33 @@ def _build_mirror(debug: bool = False) -> Mirror:
     return Mirror(backend, debug=debug)
 
 
+def _skip_when_offline(func: Callable[..., int]) -> Callable[..., int]:
+    """Quietly skip a run when the machine simply cannot reach Google.
+
+    A deliberate, narrow exception to the fail-hard policy (AGENTS.md): only a
+    genuine "no network/DNS" condition is swallowed. Real API errors
+    (``googleapiclient.errors.HttpError``) and bad credentials
+    (``google.auth.exceptions.RefreshError``) are not caught and still crash.
+
+    Prints to stdout and exits 0, so a manual run shows the note while cron
+    (``1>/dev/null``) stays silent instead of mailing a traceback.
+    """
+
+    @functools.wraps(func)
+    def wrapper(argv: list[str] | None = None) -> int:
+        from httplib2 import ServerNotFoundError
+        from google.auth.exceptions import TransportError
+
+        try:
+            return func(argv)
+        except (ServerNotFoundError, socket.gaierror, TransportError):
+            print("Google Drive is unreachable (no network/DNS) - skipping this run.")
+            return 0
+
+    return wrapper
+
+
+@_skip_when_offline
 def gd_sync(argv=None) -> int:
     """Sync the local directory with Google Drive (like Dropbox)."""
     parser = argparse.ArgumentParser(
