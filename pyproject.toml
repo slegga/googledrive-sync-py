@@ -7,7 +7,7 @@ name = "googledrive-sync-py"
 version = "1.0.0"
 description = "Dropbox-like two-way mirror between a local directory and Google Drive (Python rewrite of mojo-googledrive)"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "slegga" }]
 dependencies = [
